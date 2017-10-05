@@ -129,6 +129,8 @@ $("#add-train-btn").on("click", function(event) {
         var nextTrain = moment().add(tMinutesTillTrain, "minutes");
         console.log("ARRIVAL TIME: " + moment(nextTrain).format("hh:mm"));
 
+        var nextTrain2 = moment(nextTrain).format("hh:mm")
+
 
 
 
@@ -137,7 +139,7 @@ $("#add-train-btn").on("click", function(event) {
         // Add each train's data into the html
         //remember to add start
         $("#time-table").append("<tr><td>" + trainName + "</td><td>" + trainDestination + 
-            "</td><td>" + trainFrequency + "</td><td>" + nextTrain + "</td><td>" + tMinutesTillTrain + "</td></tr>");
+            "</td><td>" + trainFrequency + "</td><td>" + nextTrain2 + "</td><td>" + tMinutesTillTrain + "</td></tr>");
     });
 
 });
