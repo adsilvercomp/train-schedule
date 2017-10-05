@@ -27,15 +27,15 @@ var database = firebase.database();
 $("#add-train-btn").on("click", function(event) {
     event.preventDefault();
 
-    // Grabs user input
-    var trainName = $("#train-name-input").val().trim();
+    // Grabs user input and store it in variable
+    var name = $("#train-name-input").val().trim();
     var destination = $("#destination-input").val().trim();
     var start = moment($("#start-input").val().trim(), "DD/MM/YY").format("X");
     var frequency = $("#frequency-input").val().trim();
 
     // Creates local "train" object for holding train data
     var newTrain = {
-        name: trainName,
+        name: name,
         destination: destination,
         start: start,
         frequency: frequency
@@ -58,48 +58,86 @@ $("#add-train-btn").on("click", function(event) {
     $("#destination-input").val("");
     $("#start-input").val("");
     $("#frequency-input").val("");
+
+
+    // 3. Create Firebase event for adding train to the database and a row in the html when a user adds an entry
+    database.ref().on("child_added", function(childSnapshot, prevChildKey) {
+
+        console.log(childSnapshot.val());
+
+        // Store everything into a variable.
+        var trainName = childSnapshot.val().name;
+        var trainFrequency = childSnapshot.val().frequency;
+        var trainStart = childSnapshot.val().start;
+        var trainDestination = childSnapshot.val().destination;
+
+        // train Info
+        console.log(trainName);
+        console.log(trainFrequency);
+        console.log(trainStart);
+        console.log(trainDestination);
+
+
+        /////////////////////////////////////
+
+        // Assume the following situations.
+        // (TEST 1)
+        // First Train of the Day is 3:00 AM
+        // Assume Train comes every 3 minutes.
+        // Assume the current time is 3:16 AM....
+        // What time would the next train be...? (Use your brain first)
+        // It would be 3:18 -- 2 minutes away
+        // (TEST 2)
+        // First Train of the Day is 3:00 AM
+        // Assume Train comes every 7 minutes.
+        // Assume the current time is 3:16 AM....
+        // What time would the next train be...? (Use your brain first)
+        // It would be 3:21 -- 5 minutes away
+        // ==========================================================
+        // Solved Mathematically
+        // Test case 1:
+        // 16 - 00 = 16
+        // 16 % 3 = 1 (Modulus is the remainder)
+        // 3 - 1 = 2 minutes away
+        // 2 + 3:16 = 3:18
+        // Solved Mathematically
+        // Test case 2:
+        // 16 - 00 = 16
+        // 16 % 7 = 2 (Modulus is the remainder)
+        // 7 - 2 = 5 minutes away
+        // 5 + 3:16 = 3:21
+        // Assumptions
+        var tFrequency = trainFrequency;
+        // Time is 3:30 AM
+        var tStart = trainStart;
+        // First Time (pushed back 1 year to make sure it comes before current time)
+        var tStartConverted = moment(tStart, "hh:mm").subtract(1, "years");
+        console.log("time conversion: " + tStartConverted);
+        // Current Time
+        var currentTime = moment();
+        console.log("CURRENT TIME: " + moment(currentTime).format("hh:mm"));
+        // Difference between the times
+        var diffTime = moment().diff(moment(tStartConverted), "minutes");
+        console.log("DIFFERENCE IN TIME: " + diffTime);
+        // Time apart (remainder)
+        var tRemainder = diffTime % tFrequency;
+        console.log(tRemainder);
+        // Minute Until Train
+        var tMinutesTillTrain = tFrequency - tRemainder;
+        console.log("MINUTES TILL TRAIN: " + tMinutesTillTrain);
+        // Next Train
+        var nextTrain = moment().add(tMinutesTillTrain, "minutes");
+        console.log("ARRIVAL TIME: " + moment(nextTrain).format("hh:mm"));
+
+
+
+
+        //////////////////////////////////////
+
+        // Add each train's data into the html
+        //remember to add start
+        $("#time-table").append("<tr><td>" + trainName + "</td><td>" + trainDestination + 
+            "</td><td>" + trainFrequency + "</td><td>" + tRemainder + "</td></tr>");
+    });
+
 });
-
-// 3. Create Firebase event for adding train to the database and a row in the html when a user adds an entry
-database.ref().on("child_added", function(childSnapshot, prevChildKey) {
-
-    console.log(childSnapshot.val());
-
-    // Store everything into a variable.
-    var trainName = childSnapshot.val().name;
-    var trainFrequency = childSnapshot.val().frequency;
-    var trainStart = childSnapshot.val().start;
-    var trainDestination = childSnapshot.val().destination;
-
-    // train Info
-    console.log(trainName);
-    console.log(trainFrequency);
-    console.log(trainStart);
-    console.log(trainDestination);
-
-    // Prettify the train start
-    var trainStartPretty = moment.unix(trainStart).format("HH:mm ");
-
-    // Calculate the months worked using hardcore math
-    // To calculate the months worked
-
-    var empMonths = moment().diff(moment.unix(empStart, "X"), "months");
-    console.log(empMonths);
-
-    // Calculate the total billed rate
-    var empBilled = empMonths * empRate;
-    console.log(empBilled);
-
-    // Add each train's data into the 
-    //remember to add start
-    $("#time-table > tbody").append("<tr><td>" + trainName + "</td><td>" + destination + "</td><td>" +
-        "</td><td>" + frequency + "</td>");
-});
-
-// Example Time Math
-// -----------------------------------------------------------------------------
-// Assume Employee start date of January 1, 2015
-// Assume current date is March 1, 2016
-
-// We know that this is 15 months.
-// Now we will create code in moment.js to confirm that any attempt we use mets this test case
