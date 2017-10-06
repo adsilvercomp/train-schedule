@@ -60,7 +60,12 @@ $("#add-train-btn").on("click", function(event) {
     $("#frequency-input").val("");
 
 
-    // 3. Create Firebase event for adding train to the database and a row in the html when a user adds an entry
+  
+
+});
+
+
+  // 3. Create Firebase event for adding train to the database and a row in the html when a user adds an entry
     database.ref().on("child_added", function(childSnapshot, prevChildKey) {
 
         console.log(childSnapshot.val());
@@ -141,5 +146,3 @@ $("#add-train-btn").on("click", function(event) {
         $("#time-table").append("<tr><td>" + trainName + "</td><td>" + trainDestination + 
             "</td><td>" + trainFrequency + "</td><td>" + nextTrain2 + "</td><td>" + tMinutesTillTrain + "</td></tr>");
     });
-
-});
